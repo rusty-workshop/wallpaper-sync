@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync new wallpapers from JaKooLit/Wallpaper-Bank
+
+[Service]
+Type=oneshot
+ExecStart=%h/Projects/wallpaper-sync/sync-wallpapers.sh
