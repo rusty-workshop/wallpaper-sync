@@ -10,8 +10,16 @@ set -euo pipefail
 REPO_URL="https://github.com/JaKooLit/Wallpaper-Bank.git"
 CACHE_DIR="$HOME/.cache/wallpaper-sync/Wallpaper-Bank"
 DEST_DIR="$HOME/Pictures/wallpapers"
+STATUS_FILE="$HOME/.local/state/wallpaper-sync/status.json"
 DRY_RUN=false
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=true
+
+write_status() {
+  $DRY_RUN && return 0
+  mkdir -p "$(dirname "$STATUS_FILE")"
+  printf '{"last_run":"%s","added_count":%s,"zero_byte_count":%s}\n' \
+    "$(date -Iseconds)" "$1" "$2" > "$STATUS_FILE"
+}
 
 mkdir -p "$(dirname "$CACHE_DIR")" "$DEST_DIR"
 
@@ -59,6 +67,7 @@ else
   echo "No new wallpapers."
 fi
 
+ZERO_BYTE_COUNT=$(echo -n "$ZERO_BYTE" | grep -c . || true)
 if [ -n "$ZERO_BYTE" ]; then
   echo "WARNING: zero-byte files found in $DEST_DIR (possible corruption):"
   echo "$ZERO_BYTE"
@@ -66,3 +75,5 @@ if [ -n "$ZERO_BYTE" ]; then
     notify-send -u critical "Wallpaper sync" "Zero-byte files detected in $DEST_DIR — check manually"
   fi
 fi
+
+write_status "$COUNT" "$ZERO_BYTE_COUNT"
